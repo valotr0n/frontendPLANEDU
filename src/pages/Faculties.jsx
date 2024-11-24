@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Header from '../compnents/Header';
 
 const faculties = [
-  { id: 'vmo', name: 'ВМО' },
+  { id: 'ВМО', name: 'ВМО' },
   { id: 'vpr', name: 'ВПР' },
   { id: 'vkb', name: 'ВКБ' },
   { id: 'vias', name: 'ВИАС' },

@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../compnents/Header';
 import mermaid from 'mermaid';
 
 export default function Roadmap() {
   const { facultyId } = useParams();
+  const mermaidRef = useRef(null);
 
   useEffect(() => {
     mermaid.initialize({
@@ -16,6 +17,7 @@ export default function Roadmap() {
         curve: 'basis',
         useMaxWidth: false,
       },
+      securityLevel: 'loose',
       themeVariables: {
         fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: '16px',
@@ -24,10 +26,23 @@ export default function Roadmap() {
         nodeTextColor: '#000000',
       }
     });
+
+    const renderDiagram = async () => {
+      if (mermaidRef.current) {
+        mermaidRef.current.innerHTML = '';
+        try {
+          const { svg } = await mermaid.render('mermaid-diagram', mermaidDiagram);
+          mermaidRef.current.innerHTML = svg;
+        } catch (error) {
+          console.error('Ошибка рендеринга диаграммы:', error);
+        }
+      }
+    };
+
+    renderDiagram();
   }, []);
 
-  const getMermaidDiagram = () => {
-    return `
+  const mermaidDiagram = `
     flowchart TB
     classDef default fill:#fff,stroke:#2563eb,stroke-width:2px,color:#000;
     classDef section fill:#f8fafc,stroke:#2563eb,stroke-width:2px,color:#000;
@@ -39,7 +54,6 @@ export default function Roadmap() {
 
     %% Первый уровень
     A --> B[Алгебра]
-    A --> C[Геометрия]
     A --> D[Математический анализ]
 
     %% Алгебра
@@ -56,24 +70,6 @@ export default function Roadmap() {
     
     B2 --> B2_1[Группы и кольца]
     B2 --> B2_2[Поля и векторные пространства]
-    end
-
-    %% Геометрия
-    subgraph Геометрия
-    C --> C1[Планиметрия]
-    C --> C2[Стереометрия]
-    C --> C3[Аналитическая геометрия]
-    
-    C1 --> C1_1[Треугольники]
-    C1 --> C1_2[Окружности]
-    C1_1 --> C1_1_1[Признаки равенства]
-    C1_1 --> C1_1_2[Признаки подобия]
-    
-    C2 --> C2_1[Многогранники]
-    C2 --> C2_2[Тела вращения]
-    
-    C3 --> C3_1[Векторы]
-    C3 --> C3_2[Координатный метод]
     end
 
     %% Математический анализ
@@ -112,8 +108,7 @@ export default function Roadmap() {
     class A,B,C,D section;
     class E,F,G recommended;
     class B2,C3,D2 optional;
-    `;
-  };
+  `;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -122,10 +117,8 @@ export default function Roadmap() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           План обучения: {facultyId.toUpperCase()}
         </h1>
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="mermaid w-full" style={{ minWidth: '800px' }}>
-            {getMermaidDiagram()}
-          </div>
+        <div className="bg-white rounded-lg shadow-lg p-6 overflow-auto">
+          <div ref={mermaidRef} className="mermaid-diagram" />
         </div>
       </div>
     </div>
