@@ -1,0 +1,171 @@
+.roadmap-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .roadmap-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .roadmap-group {
+    position: relative;
+  }
+  
+  .roadmap-item {
+    position: relative;
+    margin-left: 32px;
+  }
+  
+  .roadmap-group::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #4B5563;
+  }
+  
+  .roadmap-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    width: 20px;
+    height: 2px;
+    background: #4B5563;
+  }
+  
+  .roadmap-group > .roadmap-item:first-child::after {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    bottom: 0;
+    width: 2px;
+    background: #4B5563;
+  }
+  
+  .roadmap-group > .roadmap-item:last-child::after {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 0;
+    height: 50%;
+    width: 2px;
+    background: #4B5563;
+  }
+  
+  .roadmap-card {
+    background: white;
+    border: 2px solid #4B5563;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px 0;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .roadmap-card:hover {
+    border-color: #2563EB;
+    transform: translateX(4px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .roadmap-status-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #4B5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  
+  .roadmap-status-done {
+    background-color: #10B981;
+    border-color: #10B981;
+  }
+  
+  .roadmap-status-in-progress {
+    background-color: #F59E0B;
+    border-color: #F59E0B;
+  }
+  
+  .roadmap-status-skipped {
+    background-color: #EF4444;
+    border-color: #EF4444;
+  }
+  
+  .group-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-left: 32px;
+    color: #1F2937;
+  }
+  
+  .node rect {
+    transition: all 0.3s ease;
+  }
+  
+  .node text {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  
+  .link {
+    transition: all 0.3s ease;
+  }
+  
+  .node:hover .link {
+    stroke: #2563EB;
+    stroke-width: 2;
+  }
+  
+  .mermaid {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    overflow: auto;
+  }
+  
+  .mermaid .node rect {
+    transition: all 0.3s ease;
+    rx: 8px;
+    ry: 8px;
+  }
+  
+  .mermaid .node:hover rect {
+    filter: brightness(0.95);
+  }
+  
+  .mermaid .edgePath {
+    stroke-width: 2px !important;
+  }
+  
+  .mermaid .label {
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .mermaid .nodeLabel {
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .mermaid .cluster rect {
+    rx: 8px;
+    ry: 8px;
+    fill: #f8fafc !important;
+    stroke: #e2e8f0 !important;
+  }
+  
+  .mermaid .cluster .label {
+    font-weight: bold !important;
+  }
