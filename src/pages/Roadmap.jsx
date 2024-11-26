@@ -49,6 +49,7 @@ export default function Roadmap() {
   };
 
   useEffect(() => {
+    console.log(facultyId)
     mermaid.initialize({
       startOnLoad: true,
       theme: 'base',
@@ -56,7 +57,7 @@ export default function Roadmap() {
         nodeSpacing: 30,
         rankSpacing: 100,
         curve: 'basis',
-        useMaxWidth: false,
+        useMaxWidth: true,
         htmlLabels: true,
         padding: 15,
       },
@@ -75,18 +76,28 @@ export default function Roadmap() {
 
     const renderDiagram = async () => {
       if (mermaidRef.current) {
-        mermaidRef.current.innerHTML = '';
         try {
           const diagram = generateMermaidDiagram(roadmapData, facultyId);
-          const { svg } = await mermaid.render('mermaid-diagram', diagram);
-          mermaidRef.current.innerHTML = svg;
+          if (mermaidRef.current.innerHTML) {
+            mermaidRef.current.innerHTML = '';
+          }
+          const { svg } = await mermaid.render(`mermaid-diagram-${facultyId}`, diagram);
+          if (mermaidRef.current) {
+            mermaidRef.current.innerHTML = svg;
+          }
         } catch (error) {
           console.error('Ошибка рендеринга диаграммы:', error);
         }
       }
     };
 
-    renderDiagram();
+    setTimeout(renderDiagram, 0);
+
+    return () => {
+      if (mermaidRef.current) {
+        mermaidRef.current.innerHTML = '';
+      }
+    };
   }, [facultyId]);
   return (
     <div className="min-h-screen bg-white">
