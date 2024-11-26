@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../compnents/Header';
 import mermaid from 'mermaid';
@@ -7,107 +8,175 @@ import roadmapData from '../data/roadmapData.json';
 export default function Roadmap() {
   const { facultyId } = useParams();
   const mermaidRef = useRef(null);
+  const navigate = useNavigate();
+  const [diagram, setDiagram] = useState('');
 
-  const generateMermaidDiagram = (data, facultyId) => {
-    const faculty = data[facultyId];
-    if (!faculty) return '';
-
-    let diagram = `
-    flowchart TD
-    %% Styles
-    classDef default fill:#fff,stroke:#000,stroke-width:2px,color:#000;
-    classDef section fill:#f6f7f8,stroke:#000,stroke-width:2px,color:#000;
-    classDef recommended fill:#e7f3ff,stroke:#000,stroke-width:2px,color:#000;
-    classDef optional fill:#fff,stroke:#666,stroke-width:2px,color:#666,stroke-dasharray: 5 5;
-    `;
-
+  const generateMermaidDiagram = (data) => {
+    let diagram = 'graph TD;\n';
+    
     const processNode = (node, parentId = null) => {
-      const nodeId = node.id.replace(/[^a-zA-Z0-9]/g, '_');
+      const currentId = node.id;
       
-      const formattedName = node.name.replace(/ /g, '<br>');
-      diagram += `\n    ${nodeId}["${formattedName}"]`;
-      
-      if (node.type === 'section') {
-        diagram += `\n    class ${nodeId} section`;
-      } else if (node.optional) {
-        diagram += `\n    class ${nodeId} optional`;
-      } else if (node.recommended) {
-        diagram += `\n    class ${nodeId} recommended`;
-      }
+      diagram += `${currentId}["${node.name}"];\n`;
       
       if (parentId) {
-        diagram += `\n    ${parentId} --> ${nodeId}`;
+        diagram += `${parentId} --> ${currentId};\n`;
       }
-
+      
       if (node.children) {
-        node.children.forEach(child => processNode(child, nodeId));
+        node.children.forEach(child => processNode(child, currentId));
       }
     };
 
-    processNode(faculty);
+    const facultyData = data[facultyId];
+    if (facultyData && facultyData.children) {
+      facultyData.children.forEach(node => processNode(node));
+    }
+
     return diagram;
   };
 
+  const handleNodeClick = (nodeId, nodeName) => {
+    navigate(`/chat/${facultyId}/${nodeId}`, { 
+      state: { topic: nodeName } 
+    });
+  };
+
   useEffect(() => {
-    console.log(facultyId)
     mermaid.initialize({
       startOnLoad: true,
-      theme: 'base',
+      theme: 'default',
       flowchart: {
-        nodeSpacing: 30,
-        rankSpacing: 100,
+        nodeSpacing: 50,
+        rankSpacing: 80,
         curve: 'basis',
         useMaxWidth: true,
         htmlLabels: true,
-        padding: 15,
+        padding: 20,
+      },
+      themeVariables: {
+        primaryColor: '#2563EB',
+        primaryTextColor: '#FFFFFF',
+        primaryBorderColor: '#1E40AF',
+        lineColor: '#94A3B8',
+        secondaryColor: '#3B82F6',
+        tertiaryColor: '#BFDBFE',
+        mainBkg: 'transparent',
+        nodeBorder: '#1E40AF',
+        clusterBkg: 'transparent',
+        clusterBorder: '#E2E8F0',
+        edgeLabelBackground: '#FFFFFF',
       },
       securityLevel: 'loose',
-      themeVariables: {
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        fontSize: '14px',
-        primaryColor: '#000',
-        primaryTextColor: '#000',
-        primaryBorderColor: '#000',
-        lineColor: '#000',
-        secondaryColor: '#f6f7f8',
-        tertiaryColor: '#fff',
-      }
     });
 
-    const renderDiagram = async () => {
-      if (mermaidRef.current) {
-        try {
-          const diagram = generateMermaidDiagram(roadmapData, facultyId);
-          if (mermaidRef.current.innerHTML) {
-            mermaidRef.current.innerHTML = '';
-          }
-          const { svg } = await mermaid.render(`mermaid-diagram-${facultyId}`, diagram);
-          if (mermaidRef.current) {
-            mermaidRef.current.innerHTML = svg;
-          }
-        } catch (error) {
-          console.error('Ошибка рендеринга диаграммы:', error);
+    const newDiagram = generateMermaidDiagram(roadmapData);
+    setDiagram(newDiagram);
+
+    const clickHandler = (e) => {
+      const nodeElement = e.target.closest('.node');
+      if (nodeElement) {
+        const nodeId = nodeElement.id;
+        const nodeLabelElement = nodeElement.querySelector('.nodeLabel');
+        if (nodeLabelElement) {
+          const nodeText = nodeLabelElement.textContent.replace(/['"]/g, '');
+          handleNodeClick(nodeId, nodeText);
         }
       }
     };
-
-    setTimeout(renderDiagram, 0);
+    const mermaidContainer = mermaidRef.current;
+    if (mermaidContainer) {
+      mermaidContainer.addEventListener('click', clickHandler);
+    }
 
     return () => {
-      if (mermaidRef.current) {
-        mermaidRef.current.innerHTML = '';
+      if (mermaidContainer) {
+        mermaidContainer.removeEventListener('click', clickHandler);
       }
     };
-  }, [facultyId]);
+  }, [facultyId, navigate]);
+
+  useEffect(() => {
+    if (diagram && mermaidRef.current) {
+      mermaid.render('mermaid-diagram', diagram)
+        .then(({ svg }) => {
+          mermaidRef.current.innerHTML = svg;
+          
+          const styleElement = document.createElement('style');
+          styleElement.textContent = `
+            #mermaid-diagram-svg {
+              background-color: transparent !important;
+            }
+
+            .node rect {
+              rx: 8px !important;
+              ry: 8px !important;
+              fill: #2563EB !important;
+              stroke: #1E40AF !important;
+              stroke-width: 1px !important;
+            }
+
+            .node text {
+              fill: #FFFFFF !important;
+              font-family: system-ui, -apple-system, sans-serif !important;
+              font-weight: 600 !important;
+              font-size: 14px !important;
+              dominant-baseline: middle !important;
+            }
+
+            .edgePath path.path {
+              stroke: #94A3B8 !important;
+              stroke-width: 2px !important;
+              marker-end: none !important;
+            }
+
+            .edgePath:nth-of-type(odd) path.path {
+              stroke-dasharray: none !important;
+            }
+
+            .edgePath:nth-of-type(even) path.path {
+              stroke-dasharray: 5, 5 !important;
+            }
+
+            .edgePath marker {
+              display: none !important;
+            }
+
+            .edgeLabel {
+              background-color: transparent !important;
+            }
+
+            .node:hover rect {
+              fill: #3B82F6 !important;
+              filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07));
+            }
+          `;
+
+          const svgElement = mermaidRef.current.querySelector('svg');
+          svgElement.style.backgroundColor = 'transparent';
+          svgElement.appendChild(styleElement);
+        })
+        .catch(error => {
+          console.error('Ошибка при рендеринге диаграммы:', error);
+        });
+    }
+  }, [diagram]);
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-[1200px] mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          План обучения: {facultyId.toUpperCase()}
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+          План обучения: {facultyId}
         </h1>
-        <div className="bg-white rounded-lg p-6 overflow-auto">
-          <div ref={mermaidRef} className="mermaid-diagram min-w-[800px]" />
+        <div className="bg-transparent dark:bg-gray-800 rounded-lg shadow-sm">
+          <div 
+            ref={mermaidRef} 
+            className="mermaid-diagram min-w-[800px] p-6"
+            style={{
+              backgroundColor: 'transparent',
+            }}
+          />
         </div>
       </div>
     </div>
