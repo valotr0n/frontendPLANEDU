@@ -175,30 +175,37 @@
   
   .mermaid-diagram {
     width: 100%;
-    min-height: 500px;
     overflow: auto;
   }
   
   .mermaid-diagram svg {
-    min-width: 800px;
-    height: auto;
+    height: auto !important;
   }
   
-  /* Стили для узлов */
-  .mermaid-diagram .node rect {
-    rx: 8px;
-    ry: 8px;
+  /* Стили узлов */
+  .mermaid .node rect {
+    rx: 4px !important;
+    ry: 4px !important;
   }
   
-  /* Стили для линий */
-  .mermaid-diagram .edgePath path {
-    stroke-width: 2px;
+  /* Стили для стрелок */
+  .mermaid .edgePath path {
+    stroke-width: 1.5px !important;
   }
   
-  /* Стили для подграфов */
-  .mermaid-diagram .cluster rect {
-    rx: 8px;
-    ry: 8px;
-    fill: #f8fafc;
-    stroke: #e2e8f0;
+  /* Стили для текста */
+  .mermaid .label {
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-size: 14px !important;
+  }
+  
+  /* Анимация при наведении */
+  .mermaid .node:hover rect {
+    filter: brightness(0.95);
+    transition: all 0.2s ease;
+  }
+  
+  .mermaid .edgePath:hover path {
+    stroke-width: 2px !important;
+    transition: all 0.2s ease;
   }

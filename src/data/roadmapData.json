@@ -1,6 +1,9 @@
 {
   "ВМО": {
+    "id": "vmo",
     "name": "Математическое образование",
+    "type": "section",
+    "optional": false,
     "children": [
       {
         "id": "math-basics",

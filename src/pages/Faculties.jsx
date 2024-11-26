@@ -4,10 +4,9 @@ import Header from '../compnents/Header';
 
 const faculties = [
   { id: 'ВМО', name: 'ВМО' },
-  { id: 'vpr', name: 'ВПР' },
-  { id: 'vkb', name: 'ВКБ' },
-  { id: 'vias', name: 'ВИАС' },
-  { id: 'vis', name: 'ВИАС' },
+  { id: 'ВПР', name: 'ВПР' },
+  { id: 'ВКБ', name: 'ВКБ' },
+  { id: 'ВИАС', name: 'ВИАС' },
 ];
 
 export default function Faculties() {

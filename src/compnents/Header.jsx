@@ -7,9 +7,14 @@ export default function Header() {
         <Link to="/" className="text-2xl font-bold">
           PlanEdu
         </Link>
-        <Link to="/" className="hover:underline">
-          Выйти
-        </Link>
+        <div className="flex gap-6">
+          <Link to="/chat" className="hover:underline">
+            Помощник
+          </Link>
+          <Link to="/" className="hover:underline">
+            Выйти
+          </Link>
+        </div>
       </nav>
     </header>
   );
