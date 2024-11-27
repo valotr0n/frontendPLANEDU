@@ -1,7 +1,6 @@
 import os
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, parse_qs
 
 # Ссылка на учебный план ДГТУ
 url = 'https://edu.donstu.ru/Plans/Plan.aspx?id=50288'
