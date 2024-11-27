@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import Header from '../compnents/Header';
+import Message from '../compnents/Message';
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
@@ -21,35 +22,56 @@ export default function Chat() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
-
+  
     const userMessage = { role: 'user', content: inputMessage };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]); // Добавляем сообщение пользователя
     setInputMessage('');
     setIsLoading(true);
-
-    try {
-      const response = await fetch('http://localhost:8000/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-          topic: topic
-        }),
+  
+    const eventSource = new EventSource(`http://localhost:8000/chat-stream/?message=${encodeURIComponent(inputMessage)}`);
+  
+    // Создаем переменную для накопления ответа
+    let accumulatedResponse = '';
+  
+    eventSource.onmessage = (event) => {
+      accumulatedResponse += event.data;  // Добавляем каждый чанк к накопленному ответу
+      
+      setMessages(prev => {
+        // Проверяем, есть ли последнее сообщение от ассистента
+        const lastMessage = prev[prev.length - 1];
+        
+        // Если последнее сообщение — от ассистента, обновляем его
+        if (lastMessage.role === 'assistant') {
+          return [
+            ...prev.slice(0, -1),  // Убираем последнее сообщение
+            { ...lastMessage, content: accumulatedResponse },  // Обновляем контент
+          ];
+        } else {
+          // Если последнее сообщение от пользователя, добавляем новое сообщение от ассистента
+          return [
+            ...prev,
+            { role: 'assistant', content: accumulatedResponse },
+          ];
+        }
       });
-
-      const data = await response.json();
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (error) {
+  
+      scrollToBottom();  // Скроллим в конец чата
+    };
+  
+    eventSource.onerror = (error) => {
       console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Извините, произошла ошибка. Попробуйте позже.'
-      }]);
-    } finally {
       setIsLoading(false);
-    }
+      eventSource.close();  // Закрытие соединения при ошибке
+    };
+  
+    eventSource.onopen = () => {
+      setIsLoading(false);
+    };
+
+    // Закрытие соединения при завершении
+    eventSource.onclose = () => {
+      console.log('Соединение закрыто.');
+    };
   };
 
   return (
@@ -68,12 +90,10 @@ export default function Chat() {
               >
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white'
+                    message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white'
                   }`}
                 >
-                  {message.content}
+                  <Message content={message.content} />
                 </div>
               </div>
             ))}

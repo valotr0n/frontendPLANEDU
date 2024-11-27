@@ -5,6 +5,7 @@ import Header from '../compnents/Header';
 import mermaid from 'mermaid';
 import roadmapData from '../data/roadmapData.json';
 
+
 export default function Roadmap() {
   const { facultyId } = useParams();
   const mermaidRef = useRef(null);
@@ -109,8 +110,8 @@ export default function Roadmap() {
             }
 
             .node rect {
-              rx: 8px !important;
-              ry: 8px !important;
+              rx: 15px !important;
+              ry: 15px !important;
               fill: #2563EB !important;
               stroke: #1E40AF !important;
               stroke-width: 1px !important;
@@ -118,11 +119,17 @@ export default function Roadmap() {
 
             .node text {
               fill: #FFFFFF !important;
-              font-family: system-ui, -apple-system, sans-serif !important;
+              font-family: Golos,Open Sans,Arial,sans-serif !important;
               font-weight: 600 !important;
               font-size: 14px !important;
               dominant-baseline: middle !important;
             }
+
+            #mermaid-diagram .label text, #mermaid-diagram span {
+              fill: #FFFFFF !important;
+              color: #FFFFFF !important;
+            }
+
 
             .edgePath path.path {
               stroke: #94A3B8 !important;
