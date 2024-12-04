@@ -40,12 +40,11 @@ async def stream_response(message: str):
 class UserInput(BaseModel):
     message: str
 
-
+#Обрабатывает пользовательский ввод через POST-запрос и возвращает ответ от модели.
 @app.post("/chat/")
 async def chat(input_data: UserInput):
-    """
-    Обрабатывает пользовательский ввод через POST-запрос и возвращает ответ от модели.
-    """
+
+
     try:
         response = await ai_model.process_message(input_data.message)
         return {"response": response}
@@ -60,7 +59,7 @@ async def chat_stream(message: str):
         media_type="text/event-stream"
     )
 
-
+# Очистка памяти
 @app.post("/reset/")
 async def reset_history():
     """
