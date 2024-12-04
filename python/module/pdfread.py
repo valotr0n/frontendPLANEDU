@@ -30,8 +30,6 @@ def merge_elements(lst):
             i += 1
     return result
 
-
-# TODO
 def parse_rpd(text):
     data = {}
     string_for_sobrat = ''
@@ -52,6 +50,9 @@ def parse_rpd(text):
                 
                 for item in data:
                     result.append(item)
+    for item in merge_elements(result):
+        if "/Пр/" in item or item[2] == " ":
+            print(item)
 if __name__ == "__main__":
     file_path = "Математический анализ.pdf"
     text = extract_text_from_pdf(file_path)
