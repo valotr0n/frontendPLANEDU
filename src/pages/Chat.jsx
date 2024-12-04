@@ -35,7 +35,7 @@ export default function Chat() {
   
     eventSource.onmessage = (event) => {
       accumulatedResponse += event.data;  // Добавляем каждый чанк к накопленному ответу
-      
+      setIsLoading(false);
       setMessages(prev => {
         // Проверяем, есть ли последнее сообщение от ассистента
         const lastMessage = prev[prev.length - 1];
@@ -65,7 +65,7 @@ export default function Chat() {
     };
   
     eventSource.onopen = () => {
-      setIsLoading(false);
+      setIsLoading(true);
     };
 
     // Закрытие соединения при завершении
