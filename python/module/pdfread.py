@@ -1,5 +1,7 @@
 import PyPDF2
 import re
+import os
+from parse import get_pdf
 def extract_text_from_pdf(file_path):
     try:
         with open(file_path, 'rb') as file:
@@ -30,6 +32,8 @@ def merge_elements(lst):
             i += 1
     return result
 
+
+    
 def parse_rpd(text):
     data = {}
     string_for_sobrat = ''
@@ -50,13 +54,16 @@ def parse_rpd(text):
                 
                 for item in data:
                     result.append(item)
-    for item in merge_elements(result):
-        if "/Пр/" in item or item[2] == " ":
-            print(item)
-if __name__ == "__main__":
-    file_path = "Математический анализ.pdf"
+    return only_practice(result)
+
+def only_practice(result):
+    return [item for item in merge_elements(result) if "/Пр/" in item or item[2] == " "]
+
+def zombie(file_name):
+    file_path = f"{file_name}.pdf"
+    if not os.path.exists(file_path):
+        get_pdf(file_name)
     text = extract_text_from_pdf(file_path)
     if text:
         parsed_data = parse_rpd(text)
-
-
+        return (parsed_data)

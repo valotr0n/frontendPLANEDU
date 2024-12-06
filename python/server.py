@@ -3,8 +3,9 @@ from pydantic import BaseModel
 from ai.main import AIModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-
-# Инициализация FastAPI
+from typing import List, Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from database.database import get_faculties_db, get_roadmaps_db
 app = FastAPI()
 
 
@@ -34,17 +35,31 @@ async def stream_response(message: str):
         yield f"data: [Error] {str(e)}\n\n"
 
 
-
-
-
 class UserInput(BaseModel):
     message: str
+
+class HistoryItem(BaseModel):
+    content: str
+    additional_kwargs: dict
+    response_metadata: dict
+    type: str
+    name: Optional[str] = None
+    id: Optional[str] = None
+    example: bool
+    tool_calls: Optional[List] = None
+    invalid_tool_calls: Optional[List] = None
+    usage_metadata: Optional[dict] = None
+
+
+class History(BaseModel):
+    history: List[HistoryItem]
+
+
+### API ДЛЯ НЕЙРОНКИ ##
 
 #Обрабатывает пользовательский ввод через POST-запрос и возвращает ответ от модели.
 @app.post("/chat/")
 async def chat(input_data: UserInput):
-
-
     try:
         response = await ai_model.process_message(input_data.message)
         return {"response": response}
@@ -62,8 +77,35 @@ async def chat_stream(message: str):
 # Очистка памяти
 @app.post("/reset/")
 async def reset_history():
-    """
-    Сбрасывает историю чата.
-    """
     ai_model.reset_history()
     return {"message": "История чата сброшена."}
+
+
+@app.get("/get_history/")
+async def get_history():
+    history = ai_model.get_history()
+    return  {"history": history}
+
+@app.post("/set_history/")
+async def set_history(history:History):
+    history_list = []
+    for item in history.history:
+        if item.type == "human":
+            history_list.append(HumanMessage(item.content))
+        elif item.type == "ai":
+            history_list.append(AIMessage(item.content))
+    new_history = ai_model.set_history(history_list)
+    return {"history": history_list} # new_history
+
+
+
+### API ДЛЯ БАЗЫ ДАННЫХ ##
+@app.get("/api/faculties/")
+def get_faculties():
+    data = get_faculties_db()
+    return {"data": data}
+
+@app.get("/api/roadmaps/")
+def get_roadmaps():
+    data = get_roadmaps_db("TODO")
+    return {"data": data}
