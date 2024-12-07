@@ -1,14 +1,16 @@
 import json
 import random as rnd
-from pdfread import zombie
-# Исходные данные
-data = zombie("Математический анализ")
+# from pdfread import get_practice
+from pdfread_new import get_practice_pdf
+
+
 #TODO
 # Функция для создания иерархии
-def create_hierarchy(data):
+def create_hierarchy(discipline_name):
+    data = get_practice_pdf(discipline_name)
     root = {
         "id": "vmo",
-        "name": "Математическое образование",
+        "name": discipline_name,
         "type": "section",
         "optional": False,
         "children": []
@@ -17,7 +19,8 @@ def create_hierarchy(data):
     current_level = root["children"]
     
     for item in data:
- 
+        if "Раздел" in item:
+            item = item.replace("Раздел", '')
         parts = item.split()
         level = int(parts[0].split('.')[0])
         name = ' '.join(parts[1:])
@@ -41,8 +44,6 @@ def create_hierarchy(data):
     
     return root
 
-# Создаем иерархию
-hierarchy = create_hierarchy(data)
-
+hierarchy = create_hierarchy("Линейная алгебра и приложения")
 # Выводим результат в формате JSON
 print(json.dumps(hierarchy, ensure_ascii=False, indent=2))

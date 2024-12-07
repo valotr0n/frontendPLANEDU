@@ -35,11 +35,8 @@ def merge_elements(lst):
 
     
 def parse_rpd(text):
-    data = {}
-    string_for_sobrat = ''
-    test = []
     result = []
-    sections = (text.split("4. СТРУКТУРА И СОДЕРЖАНИЕ ДИСЦИПЛИНЫ (МОДУЛЯ)")[1].split("Прием зачета /ИКР/")[0]) #5. ОЦЕНОЧНЫЕ МАТЕРИАЛЫ (ОЦЕНОЧНЫЕ СРЕДСТВА)
+    sections = (text.split("4. СТРУКТУРА И СОДЕРЖАНИЕ ДИСЦИПЛИНЫ (МОДУЛЯ)")[1].split("5. ОЦЕНОЧНЫЕ МАТЕРИАЛЫ (ОЦЕНОЧНЫЕ СРЕДСТВА)")[0]) #5. ОЦЕНОЧНЫЕ МАТЕРИАЛЫ (ОЦЕНОЧНЫЕ СРЕДСТВА)
     if sections.split('Раздел')[1:]:
         unclear_lines = ''.join(sections.split('Раздел')[1:])
 
@@ -51,19 +48,16 @@ def parse_rpd(text):
             else:
                 cleaned_line = re.sub(r'\s*Л\d+\.\d+\s*', '', unclear_line).strip()
                 data = (cleaned_line.split("\n"))
-                
                 for item in data:
                     result.append(item)
-    return only_practice(result)
+    return result
 
-def only_practice(result):
-    return [item for item in merge_elements(result) if "/Пр/" in item or item[2] == " "]
 
-def zombie(file_name):
+def get_practice(file_name):
     file_path = f"{file_name}.pdf"
     if not os.path.exists(file_path):
         get_pdf(file_name)
     text = extract_text_from_pdf(file_path)
     if text:
         parsed_data = parse_rpd(text)
-        return (parsed_data)
+        return [item for item in merge_elements(parsed_data) if "/Пр/" in item or item[2] == " "]

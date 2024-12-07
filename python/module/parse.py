@@ -1,6 +1,8 @@
 import os
 import requests
 from bs4 import BeautifulSoup
+
+
 def get_pdf(name):
     # Ссылка на учебный план ДГТУ
     url = 'https://edu.donstu.ru/Plans/Plan.aspx?id=50288'
