@@ -73,4 +73,4 @@ def combine_data(sections, topics):
 
 
 def get_practice_pdf(file_name):
-   return extract_text(file_name)
+    return extract_text(file_name)

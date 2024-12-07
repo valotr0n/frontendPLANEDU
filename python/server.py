@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
 from langchain_core.messages import HumanMessage, AIMessage
-from database.database import get_faculties_db, get_roadmaps_db
+from database.database import get_faculties_db, get_roadmaps_db, get_disciplines_db
 app = FastAPI()
 
 
@@ -34,10 +34,11 @@ async def stream_response(message: str):
     except Exception as e:
         yield f"data: [Error] {str(e)}\n\n"
 
-
+# Схема для сообщений
 class UserInput(BaseModel):
     message: str
 
+# Две схемы для истории чата с ИИ
 class HistoryItem(BaseModel):
     content: str
     additional_kwargs: dict
@@ -53,6 +54,21 @@ class HistoryItem(BaseModel):
 
 class History(BaseModel):
     history: List[HistoryItem]
+
+
+# Схемы для Faculties
+class Subject(BaseModel):
+    name: str
+    subjects: List[str]
+
+class Department(BaseModel):
+    _id: str
+    title: str
+    directions: List[Subject]
+
+class Faculties(BaseModel):
+    data: List[Department]
+
 
 
 ### API ДЛЯ НЕЙРОНКИ ##
@@ -82,7 +98,7 @@ async def reset_history():
 
 
 @app.get("/get_history/")
-async def get_history():
+async def get_history() -> History:
     history = ai_model.get_history()
     return  {"history": history}
 
@@ -101,11 +117,17 @@ async def set_history(history:History):
 
 ### API ДЛЯ БАЗЫ ДАННЫХ ##
 @app.get("/api/faculties/")
-def get_faculties():
-    data = get_faculties_db()
-    return {"data": data}
+async def get_faculties() -> Faculties:
+    data = await get_faculties_db()
+    return data
 
 @app.get("/api/roadmaps/")
-def get_roadmaps():
-    data = get_roadmaps_db("TODO")
+async def get_roadmaps():
+    data = await get_roadmaps_db("")
     return {"data": data}
+
+
+@app.get("/api/get_disciplines/{direction}")
+async def get_disciplines(direction: str) -> object:
+    data = await get_disciplines_db(direction)
+    return data
