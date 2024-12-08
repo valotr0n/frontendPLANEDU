@@ -4,9 +4,25 @@ from ai.main import AIModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
+from contextlib import asynccontextmanager
 from langchain_core.messages import HumanMessage, AIMessage
-from database.database import get_faculties_db, get_roadmaps_db, get_disciplines_db
-app = FastAPI()
+from database.database import get_faculties_db, get_roadmaps_db, get_disciplines_db, create_tables,  delete_tables
+
+
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await delete_tables()
+    print('База очищена')
+    await create_tables()
+    print('База готова')
+    yield
+    print("Выключение")
+
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 origins = ["*"]
@@ -116,6 +132,9 @@ async def set_history(history:History):
 
 
 ### API ДЛЯ БАЗЫ ДАННЫХ ##
+
+
+
 @app.get("/api/faculties/")
 async def get_faculties() -> Faculties:
     data = await get_faculties_db()

@@ -1,14 +1,27 @@
 from pymongo import MongoClient
 import json
-import pprint
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from module.parse import get_disciplines, get_url_direction
 
 # Подключение к базе данных planedu
-client = MongoClient("localhost", 27017)
+client = MongoClient("mongodb://mongo:27017")#client = MongoClient("localhost", 27017)("mongodb://mongo:27017")
+
 db = client.planedu
+
+ 
+
+async def create_tables():
+    db.create_collection('faculties')
+    db.create_collection('roadmaps')
+    db.create_collection('disciplines')
+
+async def delete_tables():
+    db.faculties.drop()
+    db.roadmaps.drop()
+    db.disciplines.drop()
+    print("Коллекции удалены")
 
 async def get_faculties_db():
     #Подключение к папке факультеты

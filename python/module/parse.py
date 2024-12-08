@@ -1,8 +1,9 @@
 import os
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, UnicodeDammit
+import chardet
 import json
-
+import re
 
 def get_disciplines(url: str, direction_name: str):
 
@@ -10,8 +11,14 @@ def get_disciplines(url: str, direction_name: str):
 
     if response.status_code == 200:
         # Получаем всю HTML страничку
-        soup = BeautifulSoup(response.content, 'html.parser')
+        #dammit = UnicodeDammit(response.content)
 
+        detected_encoding = chardet.detect(response.content)['encoding']
+        html_doc = response.content.decode(detected_encoding)
+        #html_doc = dammit.unicode_markup
+        clean_html = re.sub(r'[^\x00-\x7F]+', '', html_doc)
+        soup = BeautifulSoup(html_doc, 'html.parser')
+        
         # Находим все ссылки
         aLinks = soup.find_all('a', class_='aLink')
 
@@ -19,7 +26,6 @@ def get_disciplines(url: str, direction_name: str):
         disciplines = {f'{direction_name}': []}
         # Найдём все ссылки на РПД
         for a_tag in aLinks:
-
 
             if "РПД" in a_tag.get_text():
                 filename = a_tag.find_parent().find_parent().find(class_="dxgv dx-al") # Ссылка на html элемент с именем
@@ -34,9 +40,8 @@ def get_disciplines(url: str, direction_name: str):
                      "semester": (semestr.get_text())
                     }
                      )
-                
-        with open(f'{direction_name}json', 'w', encoding='utf-8') as json_file:
-            json.dump(disciplines, json_file, ensure_ascii=False, indent=4)
+
+        return disciplines
 def get_pdf(name):
     # Ссылка на учебный план ДГТУ
     url = 'https://edu.donstu.ru/Plans/Plan.aspx?id=50288'
@@ -60,7 +65,6 @@ def get_pdf(name):
 
                 if not file_url.startswith('http'):
                     file_url = os.path.join(url, file_url)
-                print(filename)
                 # Пытаемся скачать РПД
                 if filename == f'{name}':
                     try:
