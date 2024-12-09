@@ -1,25 +1,16 @@
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain_core.runnables import RunnableConfig
+
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from config import compile_system_prompt
+import asyncio
 
-class AsyncGeneratorWrapper:
-    def __init__(self, generator):
-        self.generator = generator
-
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        try:
-            return next(self.generator)
-        except StopIteration:
-            raise StopAsyncIteration
-
+config = RunnableConfig(max_concurrency=10)
  
 #TODO
 system_prompt = compile_system_prompt("")
@@ -39,17 +30,16 @@ class AIModel:
         messages = [self.system_message_prompt] + self.chat_history
         prompt = ChatPromptTemplate.from_messages(messages).format_prompt()
 
-        
-        async_stream = AsyncGeneratorWrapper(self.model.stream(input=prompt.to_string()))
+        async_stream = (self.model.astream(input=prompt.to_string(), config=config))
         result = []
         async for chunk in async_stream:
             result.append(chunk)
             yield chunk  # Отправка данных по частям
         full_ai_response = ''.join(result)
-        self.save_system_message(full_ai_response)
+        await self.save_system_message(full_ai_response)
 
 
-    def save_system_message(self, system_message: str):
+    async def save_system_message(self, system_message: str):
         self.chat_history.append(AIMessage(system_message))
 
     def get_history(self):
@@ -58,4 +48,5 @@ class AIModel:
     def set_history(self, new_history):
         self.chat_history = new_history
         return self.chat_history
-        
+    
+

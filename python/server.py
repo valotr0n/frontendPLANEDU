@@ -75,10 +75,9 @@ class History(BaseModel):
 # Схемы для Faculties
 class Subject(BaseModel):
     name: str
-    subjects: List[str]
 
 class Department(BaseModel):
-    _id: str
+    id: str
     title: str
     directions: List[Subject]
 
@@ -140,9 +139,9 @@ async def get_faculties() -> Faculties:
     data = await get_faculties_db()
     return data
 
-@app.get("/api/roadmaps/")
-async def get_roadmaps():
-    data = await get_roadmaps_db("")
+@app.get("/api/roadmaps/{discipline}")
+async def get_roadmaps(discipline: str) -> object:
+    data = await get_roadmaps_db(discipline)
     return {"data": data}
 
 

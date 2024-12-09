@@ -4,9 +4,9 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from module.parse import get_disciplines, get_url_direction
-
+from module.json_transformer import create_hierarchy
 # Подключение к базе данных planedu
-client = MongoClient("mongodb://mongo:27017")#client = MongoClient("localhost", 27017)("mongodb://mongo:27017")
+client = MongoClient("localhost", 27017)#client = MongoClient("localhost", 27017)("mongodb://mongo:27017")
 
 db = client.planedu
 
@@ -47,22 +47,38 @@ async def get_faculties_db():
 async def get_roadmaps_db(discipline:str):
     roadmaps = db.roadmaps
     data = (roadmaps.find_one({"table": 1}))
-    if data:
-        if discipline:   
-            return data["roadmaps"][discipline]
-        else:
-            return data["roadmaps"]
+    # if data:
+    #     if discipline:   
+    #         return data["roadmaps"][discipline]
+    #     else:
+    #         return data["roadmaps"]
+    # else:
+    #     script_dir = os.path.dirname(os.path.abspath(__file__))
+    #     file_path = os.path.join(script_dir, "roadmaps.json")
+    #     with open(file_path, 'r', encoding='utf-8') as file:
+    #         test = json.load(file)
+    #     roadmaps.insert_one({"roadmaps": test, "table": 1})
+    #     data = (roadmaps.find_one({"table": 1}))
+    #     if discipline:   
+    #         return data["roadmaps"][discipline]
+    #     else:
+    #         return data["roadmaps"]
+    try: 
+        data = roadmaps.find_one({"table": 1})["roadmaps"][discipline] 
+        return data
+    except:
+        await set_roadmap_db(discipline) # Если не существует, то подкачиваем и парсим
+        return (roadmaps.find_one({"table": 1}))["roadmaps"][discipline]
+
+  
+
+async def set_roadmap_db(discipline_name:str) -> None:
+    roadmaps = db.roadmaps
+    data = create_hierarchy(discipline_name)
+    if (roadmaps.find_one({"table": 1})): # Если коллекция уже существует добавляем новый элемент
+        update_one(discipline_name, data[discipline_name])
     else:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(script_dir, "roadmaps.json")
-        with open(file_path, 'r', encoding='utf-8') as file:
-            test = json.load(file)
-        roadmaps.insert_one({"roadmaps": test, "table": 1})
-        data = (roadmaps.find_one({"table": 1}))
-        if discipline:   
-            return data["roadmaps"][discipline]
-        else:
-            return data["roadmaps"]
+        roadmaps.insert_one({"roadmaps": data, "table": 1})
 
 
 async def user_history():

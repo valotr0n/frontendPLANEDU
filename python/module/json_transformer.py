@@ -1,49 +1,41 @@
 import json
+import os
+import sys
 import random as rnd
-# from pdfread import get_practice
+sys.path.append(os.path.dirname(__file__))
 from pdfread_new import get_practice_pdf
 
 
 #TODO
 # Функция для создания иерархии
-def create_hierarchy(discipline_name):
+def create_hierarchy(discipline_name:str) -> list:
     data = get_practice_pdf(discipline_name)
     root = {
-        "id": "vmo",
-        "name": discipline_name,
-        "type": "section",
-        "optional": False,
-        "children": []
+        discipline_name:{
+                "categories" : []
+        }
     }
     
-    current_level = root["children"]
-    
+    result = {}
+    topics = []
     for item in data:
         if "Раздел" in item:
+            if result:
+                result["topics"] = topics
+                root[discipline_name]["categories"].append(result)
+                result = {}
             item = item.replace("Раздел", '')
-        parts = item.split()
-        level = int(parts[0].split('.')[0])
-        name = ' '.join(parts[1:])
+            parts = item.split()
+            name = ' '.join(parts[1:])
+            result["name"] = name
 
-        # Убираем "/Пр/" из названия, если оно есть
-        new_name = name.replace('/Пр/', '').strip()
-        
-        # Создаем словарь для текущего элемента
-        node = {
-            "id": new_name.split(" ")[0].lower().replace(' ', '-').replace(".", '') + str(rnd.randint(1,1000)),
-            "name": new_name,
-            "children": []
-        }
-        
-        # Добавляем текущий элемент в текущий уровень
-        current_level.append(node)
+        else:
+            parts = item.split()
+            name = ' '.join(parts[1:])
+            name = name.replace('/Пр/', '')
+            topics.append(name)
 
-        if "/Пр/" not in name: 
-            # Переходим на следующий уровень
-            current_level = node["children"]
+
     
     return root
 
-hierarchy = create_hierarchy("Линейная алгебра и приложения")
-# Выводим результат в формате JSON
-print(json.dumps(hierarchy, ensure_ascii=False, indent=2))
