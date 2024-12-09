@@ -46,39 +46,25 @@ async def get_faculties_db():
 
 async def get_roadmaps_db(discipline:str):
     roadmaps = db.roadmaps
-    data = (roadmaps.find_one({"table": 1}))
-    # if data:
-    #     if discipline:   
-    #         return data["roadmaps"][discipline]
-    #     else:
-    #         return data["roadmaps"]
-    # else:
-    #     script_dir = os.path.dirname(os.path.abspath(__file__))
-    #     file_path = os.path.join(script_dir, "roadmaps.json")
-    #     with open(file_path, 'r', encoding='utf-8') as file:
-    #         test = json.load(file)
-    #     roadmaps.insert_one({"roadmaps": test, "table": 1})
-    #     data = (roadmaps.find_one({"table": 1}))
-    #     if discipline:   
-    #         return data["roadmaps"][discipline]
-    #     else:
-    #         return data["roadmaps"]
+    data = (roadmaps.find_one({"table": 2}))
     try: 
-        data = roadmaps.find_one({"table": 1})["roadmaps"][discipline] 
+        data = roadmaps.find_one({"table": 2})["roadmaps"][discipline] 
         return data
     except:
         await set_roadmap_db(discipline) # Если не существует, то подкачиваем и парсим
-        return (roadmaps.find_one({"table": 1}))["roadmaps"][discipline]
+        return (roadmaps.find_one({"table": 2}))["roadmaps"][discipline]
 
   
 
-async def set_roadmap_db(discipline_name:str) -> None:
+async def set_roadmap_db(discipline_name:str):
     roadmaps = db.roadmaps
     data = create_hierarchy(discipline_name)
-    if (roadmaps.find_one({"table": 1})): # Если коллекция уже существует добавляем новый элемент
-        update_one(discipline_name, data[discipline_name])
+    if (roadmaps.find_one({"table": 2})): # Если коллекция уже существует добавляем новый элемент
+        update_one_roadmap(discipline_name, data)
+        return
     else:
-        roadmaps.insert_one({"roadmaps": data, "table": 1})
+        roadmaps.insert_one({"roadmaps": data, "table": 2})
+        return
 
 
 async def user_history():
@@ -102,15 +88,23 @@ async def set_disciplines_db(url: str, direction: str):
     data_json = get_disciplines(url, direction)
 
     if (disciplines.find_one({"table": 1})): # Если коллекция уже существует добавляем новый элемент
-        update_one(direction, data_json[direction])
+        update_one_discipline(direction, data_json[direction])
     else:
         disciplines.insert_one({"disciplines": data_json, "table": 1}) # В противном случае вставляем новую коллекцию
 
 
-def update_one(direction: str, data):
+def update_one_discipline(direction: str, data):
     disciplines = db.disciplines
     disciplines.update_one(
     {"table": 1},  
     {"$set": {f"disciplines.{direction}": data}} 
+)
+
+
+def update_one_roadmap(discipline: str, data):
+    roadmaps = db.roadmaps
+    roadmaps.update_one(
+    {"table": 2},  
+    {"$set": {f"roadmaps.{discipline}": data[discipline]}} 
 )
     

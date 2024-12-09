@@ -20,6 +20,7 @@ def extract_text(file_name):
         text += page.extract_text()
 
     pdf_file.close()
+    os.remove(f"{file_name}.pdf")
     return get_topics_and_sections(text)
 
 def get_topics_and_sections(text):

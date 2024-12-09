@@ -142,7 +142,7 @@ async def get_faculties() -> Faculties:
 @app.get("/api/roadmaps/{discipline}")
 async def get_roadmaps(discipline: str) -> object:
     data = await get_roadmaps_db(discipline)
-    return {"data": data}
+    return data
 
 
 @app.get("/api/get_disciplines/{direction}")
