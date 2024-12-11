@@ -7,7 +7,7 @@ from typing import List, Optional
 from contextlib import asynccontextmanager
 from langchain_core.messages import HumanMessage, AIMessage
 from database.database import get_faculties_db, get_roadmaps_db, get_disciplines_db, create_tables,  delete_tables
-
+from ai.tools import Search
 
 
 
@@ -139,13 +139,18 @@ async def get_faculties() -> Faculties:
     data = await get_faculties_db()
     return data
 
-@app.get("/api/roadmaps/{discipline}")
-async def get_roadmaps(discipline: str) -> object:
-    data = await get_roadmaps_db(discipline)
+@app.get("/api/roadmaps/{discipline}/{link_id}")
+async def get_roadmaps(discipline: str, link_id:str) -> object:
+    data = await get_roadmaps_db(discipline, link_id)
     return data
 
 
 @app.get("/api/get_disciplines/{direction}")
 async def get_disciplines(direction: str) -> object:
     data = await get_disciplines_db(direction)
+    return data
+
+@app.get("/api/search/{query}")
+async def search(query:str):
+    data = await Search(query)
     return data

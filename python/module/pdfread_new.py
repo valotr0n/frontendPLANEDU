@@ -3,9 +3,9 @@ import re
 import os
 from parse import get_pdf
 
-def extract_text(file_name):
+def extract_text(link, file_name):
     if not os.path.exists(f"{file_name}.pdf"):
-        get_pdf(file_name)
+        get_pdf(link, file_name)
     pdf_file = open(f'{file_name}.pdf', 'rb')
     pdf_reader = PyPDF2.PdfReader(pdf_file)
 
@@ -73,5 +73,5 @@ def combine_data(sections, topics):
     return result
 
 
-def get_practice_pdf(file_name):
-    return extract_text(file_name)
+def get_practice_pdf(link, file_name):
+    return extract_text(link, file_name)

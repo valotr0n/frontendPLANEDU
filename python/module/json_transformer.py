@@ -8,8 +8,8 @@ from pdfread_new import get_practice_pdf
 
 #TODO
 # Функция для создания иерархии
-def create_hierarchy(discipline_name:str) -> list:
-    data = get_practice_pdf(discipline_name)
+def create_hierarchy(discipline_name:str, link_id) -> list:
+    data = get_practice_pdf(link_id, discipline_name)
     root = {
         discipline_name:{
                 "categories" : []
@@ -24,6 +24,7 @@ def create_hierarchy(discipline_name:str) -> list:
                 result["topics"] = topics
                 root[discipline_name]["categories"].append(result)
                 result = {}
+                topics = []
             item = item.replace("Раздел", '')
             parts = item.split()
             name = ' '.join(parts[1:])

@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from module.parse import get_disciplines, get_url_direction
 from module.json_transformer import create_hierarchy
 # Подключение к базе данных planedu
-client = MongoClient("localhost", 27017)#client = MongoClient("localhost", 27017)("mongodb://mongo:27017")
+client = MongoClient("mongodb://mongo:27017")#client = MongoClient("localhost", 27017)("mongodb://mongo:27017")
 
 db = client.planedu
 
@@ -44,21 +44,21 @@ async def get_faculties_db():
 
 
 
-async def get_roadmaps_db(discipline:str):
+async def get_roadmaps_db(discipline:str, link_id:str):
     roadmaps = db.roadmaps
     data = (roadmaps.find_one({"table": 2}))
     try: 
         data = roadmaps.find_one({"table": 2})["roadmaps"][discipline] 
         return data
     except:
-        await set_roadmap_db(discipline) # Если не существует, то подкачиваем и парсим
+        await set_roadmap_db(discipline, link_id) # Если не существует, то подкачиваем и парсим
         return (roadmaps.find_one({"table": 2}))["roadmaps"][discipline]
 
   
 
-async def set_roadmap_db(discipline_name:str):
+async def set_roadmap_db(discipline_name:str, link_id:str):
     roadmaps = db.roadmaps
-    data = create_hierarchy(discipline_name)
+    data = create_hierarchy(discipline_name, link_id)
     if (roadmaps.find_one({"table": 2})): # Если коллекция уже существует добавляем новый элемент
         update_one_roadmap(discipline_name, data)
         return
