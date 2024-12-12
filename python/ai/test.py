@@ -68,8 +68,8 @@ class AIModel:
         async_stream = (self.model.astream(input=prompt.to_string(), config=config))
         result = []
         async for chunk in async_stream:
-            result.append(chunk)
-            yield chunk  # Отправка данных по частям
+            result.append(chunk.content)
+            yield chunk # Отправка данных по частям
         full_ai_response = ''.join(result)
         await self.save_system_message(full_ai_response)
 
@@ -82,7 +82,7 @@ class AIModel:
         inputs = {"messages": [("user", user_input)]}
         async for chunk in self.agent.astream(inputs, config=config):
             try:
-                yield chunk.get("agent").get("messages")[0].content
+                yield chunk.get("agent").get("messages")[0].content.replace("\n", "/n")
                 full_ai_response = ''.join(chunk.get("agent").get("messages")[0].content)
             except AttributeError:
                 pass
@@ -118,10 +118,17 @@ def create_agent(model: BaseLLM):
 async def main():
     ai_model = AIModel()
     # Пример запроса
-    user_query = "Первый замечательный предел. 1 курс. Матанализ"
+    user_query = "Паша Техник. Треки"
     async for response in ai_model.tool_process_message(user_query):
         print(response)
   
+    # Пример запроса
+    # user_query = "Три шага для изучения машинного обучения"
+    # response = ai_model.process_message(user_query)
+
+    # async for chunks in response:
+    #     print(chunks.content.replace("\n", "/n"))
+    #     break
 
 if __name__ == "__main__":
     asyncio.run(main())

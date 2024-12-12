@@ -7,7 +7,6 @@ from typing import List, Optional
 from contextlib import asynccontextmanager
 from langchain_core.messages import HumanMessage, AIMessage
 from database.database import get_faculties_db, get_roadmaps_db, get_disciplines_db, create_tables,  delete_tables
-from ai.tools import Search
 
 
 
