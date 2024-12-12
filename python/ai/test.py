@@ -3,11 +3,9 @@ from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTempla
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_community.utilities import SearxSearchWrapper
-from langchain.agents import initialize_agent
 from langchain.tools import tool
 from langchain.llms import BaseLLM
 from langgraph.prebuilt import create_react_agent
-from langchain.agents import AgentType
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -45,7 +43,7 @@ def search_tool(InputQuery:str):
 
 class AIModel:
 
-    def __init__(self, model_name="llama3.1:8b-instruct-q5_K_S", temperature=1, top_k=10, base_url="http://localhost:11434"):
+    def __init__(self, model_name="llama3.1:8b-instruct-q5_K_S", temperature=1, top_k=10, base_url="http://ollama:11434"):
         self.model = ChatOllama(
             model=model_name,
             temperature=temperature,
@@ -55,6 +53,9 @@ class AIModel:
         self.system_message_prompt = SystemMessagePromptTemplate.from_template(system_prompt)
         self.chat_history = []
         self.agent = create_agent(self.model)
+        self.stop_flag = False
+
+
     def reset_history(self):
         self.chat_history = []
 
@@ -67,8 +68,13 @@ class AIModel:
         async_stream = (self.model.astream(input=prompt.to_string(), config=config))
         result = []
         async for chunk in async_stream:
+            if self.stop_flag:  # Проверяем флаг остановки
+                print("Остановка генерации ответа.")
+                await async_stream.aclose()  # Закрываем поток генератора
+                self.reset_stop_flag()
+                break
             result.append(chunk.content)
-            yield chunk # Отправка данных по частям
+            yield chunk.content.replace("\n", "/n") # Отправка данных по частям
         full_ai_response = ''.join(result)
         await self.save_system_message(full_ai_response)
 
@@ -97,6 +103,13 @@ class AIModel:
         self.chat_history = new_history
         return self.chat_history
     
+    def stop_response(self):
+        """Устанавливает флаг остановки для текущей генерации."""
+        self.stop_flag = True
+
+    def reset_stop_flag(self):
+        """Сбрасывает флаг остановки для нового запроса."""
+        self.stop_flag = False
 
 
 prompt = """ Ты ассистент который помогает студентам находить полезные учебные ресурсы.
@@ -117,17 +130,23 @@ def create_agent(model: BaseLLM):
 async def main():
     ai_model = AIModel()
     # Пример запроса
-    user_query = "Паша Техник. Треки"
-    async for response in ai_model.tool_process_message(user_query):
-        print(response)
-  
+    # user_query = "Паша Техник. Треки"
+    # async for response in ai_model.tool_process_message(user_query):
+    #     print(response)
+
     # Пример запроса
-    # user_query = "Три шага для изучения машинного обучения"
-    # response = ai_model.process_message(user_query)
+    user_query = "Три шага для изучения машинного обучения"
 
-    # async for chunks in response:
-    #     print(chunks.content.replace("\n", "/n"))
-    #     break
+    async def stop_after_delay():
+        await asyncio.sleep(10)  # Ждём 2 секунды
+        ai_model.stop_response()
 
+    # Запускаем функцию остановки параллельно
+    asyncio.create_task(stop_after_delay())
+
+    async for chunks in ai_model.process_message(user_query):
+        print(chunks.content.replace("\n", "/n"))
+    
+    
 if __name__ == "__main__":
     asyncio.run(main())

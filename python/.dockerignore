@@ -3,3 +3,4 @@ Dockerfile
 __pycache__
 .idea
 *.pdf
+.dockerignore

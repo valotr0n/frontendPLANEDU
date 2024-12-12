@@ -145,8 +145,10 @@ async def set_history(history:History):
     new_history = ai_model.set_history(history_list)
     return {"history": history_list} # new_history
 
-
-
+ 
+@app.post("/api/stop_generation/")
+async def stop_generation():
+    ai_model.stop_response()
 ### API ДЛЯ БАЗЫ ДАННЫХ ##
 
 
