@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from module.parse import get_disciplines, get_url_direction
 from module.json_transformer import create_hierarchy
 # Подключение к базе данных planedu
-client = MongoClient("mongodb://mongo:27017")#client = MongoClient("localhost", 27017)("mongodb://mongo:27017")
+client = MongoClient("localhost", 27017)#client = MongoClient("localhost", 27017)("mongodb://mongo:27017")
 
 db = client.planedu
 

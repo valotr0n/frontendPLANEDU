@@ -9,7 +9,6 @@ from langchain.llms import BaseLLM
 from langgraph.prebuilt import create_react_agent
 from langchain.agents import AgentType
 import sys
-from schemes import template
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from config import compile_system_prompt

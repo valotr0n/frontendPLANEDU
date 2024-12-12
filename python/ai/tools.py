@@ -34,7 +34,10 @@ def search_tool(InputQuery:str):
     )
     formatted_results = [{"snippet": result.get("snippet"), "title": result.get("title", "Без названия"), "link": result.get("link", "Ссылка отсутствует")} for result in results]
     return formatted_results
-
+def create_agent(model: BaseLLM):
+    tools = [search_tool]  # Добавляем инструменты
+    agent = create_react_agent(model, tools=tools)
+    return agent
 class AIModel:
     def __init__(self, model_name="llama3.1:8b-instruct-q5_K_S", temperature=1, top_k=10, base_url="http://localhost:11434"):
         self.model = ChatOllama(
@@ -86,19 +89,16 @@ class AIModel:
         self.chat_history = new_history
         return self.chat_history
     
-    def create_agent(model: BaseLLM):
-        tools = [search_tool]  # Добавляем инструменты
-        agent = create_react_agent(model, tools=tools)
-        return agent
 
-def create_agent(model: BaseLLM):
-    tools = [search_tool]  # Добавляем инструменты
-    agent = create_react_agent(model, tools=tools)
-    return agent
+
+# def create_agent(model: BaseLLM):
+#     tools = [search_tool]  # Добавляем инструменты
+#     agent = create_react_agent(model, tools=tools)
+#     return agent
 
 async def main():
     ai_model = AIModel()
-    agent = create_agent(ai_model.model)
+    agent = ai_model.agent
     def print_stream(stream):
         for s in stream:
             message = s["messages"][-1]

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from ai.main import AIModel
+from ai.test import AIModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from typing import List, Optional
@@ -48,6 +48,16 @@ async def stream_response(message: str):
             yield f"data: {chunk}\n\n"  # SSE формат данных
     except Exception as e:
         yield f"data: [Error] {str(e)}\n\n"
+
+#Стримовая версия 
+async def agent_stream_response(message: str):
+    try:
+        # Получаем потоковый ответ от модели
+        async for chunk in ai_model.tool_process_message(message):
+            yield f"data: {chunk}\n\n"  # SSE формат данных
+    except Exception as e:
+        yield f"data: [Error] {str(e)}\n\n"
+
 
 # Схема для сообщений
 class UserInput(BaseModel):
@@ -104,6 +114,14 @@ async def chat_stream(message: str):
         media_type="text/event-stream"
     )
 
+# Стримовый ендпоинт для поиска
+@app.get("/agent-stream/")
+async def agent_stream(message: str):
+    return StreamingResponse(
+        agent_stream_response(message),
+        media_type="text/event-stream"
+    )
+
 # Очистка памяти
 @app.post("/reset/")
 async def reset_history():
@@ -149,7 +167,7 @@ async def get_disciplines(direction: str) -> object:
     data = await get_disciplines_db(direction)
     return data
 
-@app.get("/api/search/{query}")
-async def search(query:str):
-    data = await Search(query)
-    return data
+# @app.get("/api/search/{query}")
+# async def search(query:str):
+#     data = await Search(query)
+#     return data
